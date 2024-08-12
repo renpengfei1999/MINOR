@@ -86,6 +86,8 @@ def list_flatten(l, a=None):
     return a  
 a=np.mat(np.zeros((541,831)))#Define a 541*831 matrix of zeros
 AA=a.astype(int)#Convert matrix AA to integer
+b=np.loadtxt('known SM-miRNA interaction.txt')
+F=b.astype(int)
     smmi=np.array(AA.T)
     dt=pd.DataFrame(smmi)
     sm = read('myDrugSim16.xlsx')
@@ -107,38 +109,3 @@ AA=a.astype(int)#Convert matrix AA to integer
     print('The'+str(y+1)+'times ')
     #Calculate the score of elements that change from 1 to 0
     S1=Smmi.T[i,j]
-
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
