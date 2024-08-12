@@ -1,0 +1,69 @@
+rm(list=ls())
+
+to_one <- function(Ori_matrix){
+  Ori_max <- max(Ori_matrix)
+  Ori_min <- min(Ori_matrix)
+  for(a in 1:dim(Ori_matrix)[1]){
+    for(b in 1: dim(Ori_matrix)[2]){
+      Ori_matrix[a,b] <- (Ori_matrix[a,b]-Ori_min)/(Ori_max-Ori_min)
+    }
+  }
+  return(Ori_matrix)
+}
+
+
+to_laplacian_one <- function(Ori_matr){
+  D <- diag(rowSums(Ori_matr))
+  L <- Ori_matr
+  for(a in 1:dim(L)[1]){
+    for(b in 1:dim(L)[2]){                
+      # L[a,b] <- L[a,b]/((D[a,a]*D[b,b])^0.5)
+      L[a,b] <- (D[a,a]^-0.5)*L[a,b]*(D[b,b]^-0.5)
+    }
+  }
+  return(L)
+}
+
+KNN <- function(adj_matrix,sim1,sim2){
+  kk <- 3     
+  Ym <- matrix(nrow = dim(adj_matrix)[1],ncol = dim(adj_matrix)[2])
+  Yd <- matrix(nrow = dim(adj_matrix)[1],ncol = dim(adj_matrix)[2])
+  for(a in 1:dim(adj_matrix)[1]){
+    tmp_index <- order(sim1[a,],decreasing = TRUE)[1:kk]
+    tmp_value <- sim1[a,][order(sim1[a,],decreasing = TRUE)[1:kk]]
+    tmpSum <- vector(mode = "numeric",length = dim(adj_matrix)[2])
+    tmpSim <- 0
+    for(aa in 1:kk){
+      tmpSum <- tmpSum + (0.5^(aa-1))*tmp_value[aa]*adj_matrix[tmp_index[aa],]
+    }
+    for(a2 in 1:kk){
+      tmpSim <- tmpSim + sim1[a,tmp_index[a2]]
+    }
+    Ym[a,] <- tmpSum/tmpSim
+  }
+  for(b in 1:dim(adj_matrix)[2]){
+    tmp_index <- order(sim2[b,],decreasing = TRUE)[1:kk]
+    tmp_value <- sim2[b,][order(sim2[b,],decreasing = TRUE)[1:kk]]
+    tmpSum <- vector(mode = "numeric",length = dim(adj_matrix)[1])
+    tmpSim <- 0
+    for(bb in 1:kk){
+      tmpSum <- tmpSum + (0.5^(bb-1))*tmp_value[bb]*adj_matrix[,tmp_index[bb]]
+    }
+    for(b2 in 1:kk){
+      tmpSim <- tmpSim + sim2[b,tmp_index[b2]]
+    }
+    Yd[,b] <- tmpSum/tmpSim
+  }
+  Ymd <- (Ym+Yd)/2
+  Y_new <- pmax(adj_matrix,Ymd)
+  return(Y_new)
+}
+setwd("E:/")
+f_drug_drug <- read.table("ssmdataset2.txt",quote="",fill=T)
+f_miRNA_miRNA <- read.table("smidataset2.txt",quote="",fill=T)  
+f_drug_miRNA <- read.table("ass2.txt",quote="",fill=T)
+Ss <- as.matrix(f_drug_drug)
+Sm <- as.matrix(f_miRNA_miRNA)
+Ysm <- as.matrix(f_drug_miRNA)
+Y <- KNN(Ysm,Ss,Sm)
+d <- data.frame(Y)
